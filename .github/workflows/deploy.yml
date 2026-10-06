@@ -1,0 +1,35 @@
+name: Deploy to Hostinger
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.HOSTINGER_HOST }}
+          username: ${{ secrets.HOSTINGER_USERNAME }}
+          key: ${{ secrets.HOSTINGER_SSH_KEY }}
+          port: ${{ secrets.HOSTINGER_PORT }}
+          script_stop: true
+          script: |
+            set -e
+
+            cd /home/u213564467/domains/gksehatklinik.com/public_html
+
+            echo "==> Fetch repository"
+            git fetch origin master
+
+            echo "==> Reset production ke origin/master"
+            git reset --hard origin/master
+
+            echo "==> Install Composer dependencies"
+            composer install --no-dev --optimize-autoloader
+
+            echo "==> Deployment selesai"
