@@ -10,25 +10,38 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Prepare SSH key
+        env:
+          SSH_KEY_B64: ${{ secrets.HOSTINGER_SSH_KEY_B64 }}
+        run: |
+          set -euo pipefail
+          echo "$SSH_KEY_B64" | base64 --decode > "$HOME/.ssh/hostinger_deploy_key"
+          chmod 600 "$HOME/.ssh/hostinger_deploy_key"
+
       - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.2.2
-        with:
-          host: ${{ secrets.HOSTINGER_HOST }}
-          username: ${{ secrets.HOSTINGER_USERNAME }}
-          key: ${{ secrets.HOSTINGER_SSH_KEY }}
-          port: ${{ secrets.HOSTINGER_PORT }}
-          script: |
-            set -e
+        env:
+          HOST: ${{ secrets.HOSTINGER_HOST }}
+          USERNAME: ${{ secrets.HOSTINGER_USERNAME }}
+          PORT: ${{ secrets.HOSTINGER_PORT }}
+        run: |
+          set -euo pipefail
 
-            cd /home/u213564467/domains/gksehatklinik.com/public_html
+          ssh -i "$HOME/.ssh/hostinger_deploy_key" \
+            -p "$PORT" \
+            -o StrictHostKeyChecking=no \
+            "$USERNAME@$HOST" <<'REMOTE'
+          set -e
 
-            echo "==> Fetch repository"
-            git fetch origin master
+          cd /home/u213564467/domains/gksehatklinik.com/public_html
 
-            echo "==> Reset production ke origin/master"
-            git reset --hard origin/master
+          echo "==> Fetch repository"
+          git fetch origin master
 
-            echo "==> Install Composer dependencies"
-            composer install --no-dev --optimize-autoloader
+          echo "==> Reset production ke origin/master"
+          git reset --hard origin/master
 
-            echo "==> Deployment selesai"
+          echo "==> Install Composer dependencies"
+          composer install --no-dev --optimize-autoloader
+
+          echo "==> Deployment selesai"
+          REMOTE
