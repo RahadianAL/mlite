@@ -12,12 +12,14 @@ jobs:
     steps:
       - name: Prepare SSH key
         env:
-          SSH_KEY_B64: ${{ secrets.HOSTINGER_SSH_KEY_B64 }}
+          SSH_KEY: ${{ secrets.HOSTINGER_SSH_KEY }}
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.ssh"
-          printf "%s" "$SSH_KEY_B64" | tr -d "[:space:]" | base64 --decode > "$HOME/.ssh/hostinger_deploy_key"
+          printf '%s\n' "$SSH_KEY" > "$HOME/.ssh/hostinger_deploy_key"
           chmod 600 "$HOME/.ssh/hostinger_deploy_key"
+          ssh-keygen -y -f "$HOME/.ssh/hostinger_deploy_key" > /dev/null
+          echo "SSH key format OK"
 
       - name: Deploy via SSH
         env:
@@ -26,7 +28,6 @@ jobs:
           PORT: ${{ secrets.HOSTINGER_PORT }}
         run: |
           set -euo pipefail
-          mkdir -p "$HOME/.ssh"
 
           ssh -i "$HOME/.ssh/hostinger_deploy_key" \
             -p "$PORT" \
