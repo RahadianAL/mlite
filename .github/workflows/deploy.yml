@@ -16,7 +16,7 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p "$HOME/.ssh"
-          echo "$SSH_KEY_B64" | base64 --decode > "$HOME/.ssh/hostinger_deploy_key"
+          printf "%s" "$SSH_KEY_B64" | tr -d "[:space:]" | base64 --decode > "$HOME/.ssh/hostinger_deploy_key"
           chmod 600 "$HOME/.ssh/hostinger_deploy_key"
 
       - name: Deploy via SSH
