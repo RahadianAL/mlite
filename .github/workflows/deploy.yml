@@ -15,6 +15,7 @@ jobs:
           SSH_KEY_B64: ${{ secrets.HOSTINGER_SSH_KEY_B64 }}
         run: |
           set -euo pipefail
+          mkdir -p "$HOME/.ssh"
           echo "$SSH_KEY_B64" | base64 --decode > "$HOME/.ssh/hostinger_deploy_key"
           chmod 600 "$HOME/.ssh/hostinger_deploy_key"
 
@@ -25,6 +26,7 @@ jobs:
           PORT: ${{ secrets.HOSTINGER_PORT }}
         run: |
           set -euo pipefail
+          mkdir -p "$HOME/.ssh"
 
           ssh -i "$HOME/.ssh/hostinger_deploy_key" \
             -p "$PORT" \
